@@ -1,0 +1,130 @@
+
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #ffffff;
+}
+
+.relogin-container {
+    padding: 30px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    margin: 250px auto;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: #0e7e11;
+}
+
+.input-container {
+    margin-bottom: 15px;
+    color: #0e7e11;
+}
+
+.input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 16px;
+    color: #0e7e11;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #013103;
+    color: rgb(0, 0, 0);
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #013103;
+}
+
+body {
+    margin: 0;
+    height: 100vh;
+    background-color: #1a1a1a;
+}
+
+.mantar {
+    position: fixed; /* Sayfanın sabit bir konumunda kalır */
+    bottom: 20px; /* En alt */
+    right: 20px; /* Sağ köşe */
+    width: 60px;
+    height: 75px;
+    transform: scale(0.5); /* Boyutu yarıya indir */
+    transform-origin: bottom right; /* Küçültme işleminin merkezi */
+    top: 65%;
+    left: 75%;
+}
+
+.sap {
+    width: 10px;
+    height: 40px;
+    background-color: #f5f5dc;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 5px 5px 0 0; /* Köşe yuvarlaklığı ayarlandı */
+}
+
+.kafa {
+    width: 60px;
+    height: 20px;
+    background-color: #ff0000;
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 25% 25% 0 0; /* Ters U şekli için alt kısım düzleştirildi */
+    box-shadow: 0 0 10px rgba(255, 99, 71, 0.5);
+    transition: box-shadow 0.3s ease, filter 0.3s ease; /* Geçiş efekti eklendi */
+    /* Küçük beyaz noktalar için radial gradient */
+    background-image: radial-gradient(circle, white 1px, transparent 1px),
+                    radial-gradient(circle, white 1px, transparent 1px);
+    background-size: 10px 10px; /* Noktaların aralığı ayarlandı */
+}
+
+.mantar:hover .kafa {
+    box-shadow: 0 0 20px rgba(255, 99, 71, 1); /* Gölgeyi artır */
+    filter: brightness(1.5); /* Parlaklık efekti ekle */
+}
+
+.mantar:hover::after {
+    content: 'Hello';
+    position: absolute;
+    top: -20px; /* Yazının konumu ayarlandı */
+    left: 50%;
+    transform: translateX(-50%);
+    color: #FFFFFF;
+    font-family: Arial, sans-serif;
+    font-size: 24px;
+    white-space: nowrap;
+}
+
+/*Mantarı deepseek e yaptırdım. Aşağıda yazdığım promt ilk verdiği çıktıydı ve sonrasında bu 
+çıktının üstüne yaklaşık 10 promt daha yazıp istediğim şekle getirdim*/
+
+/*Html ve css kullanarak yandan görünüş olacak şekilde parlayan bir mantar yap. 
+Mouse imleciyle üstüne gelince parlaklığı artsın ve yazı yazsın.*/

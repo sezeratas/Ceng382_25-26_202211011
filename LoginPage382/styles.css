@@ -1,0 +1,296 @@
+body {
+    font-family: Arial, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    background-color: #bc9898;
+    background-image: url('backgroundGif.gif'); 
+    background-size: cover; /* Arkaplan resmini tüm alanı kaplayacak şekilde ayarlar */
+    background-position: center; /* Arkaplan resmini ortalar */
+    background-repeat: no-repeat; /* Arkaplan resmini tekrar etmez */
+}
+
+.login-container {
+    font-family: Copperplate, Papyrus, fantasy;
+    background-image: url('pparchment.png'); 
+    background-size: contain; /* Arka plan resmini içeriğe göre boyutlandırır */
+    background-repeat: no-repeat; /* Arka plan resmini tekrar etmez */
+    background-position: center; /* Arka plan resmini ortalar */    
+    width: 300px; 
+    height: 500px; 
+    padding: 50px;
+    border-radius: 5px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.input-container {
+    margin-bottom: 15px;
+}
+
+.input-container label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 16px;
+}
+
+.input-container input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+button {
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #4CAF50;
+    color: white;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #45a049;
+}
+
+.input-container rememberMe {
+    margin-bottom: 15px;
+    font-size: 10px;
+}
+
+:link, :visited {
+    color: #704caf;
+    text-decoration: none;
+    font-size: 13px;
+}
+
+.linkRegister {
+    margin-top: auto;
+    color: #00f108;
+    background-color: #f0f0f0;
+    text-decoration: none;
+    font-size: 20px;
+    align-self: flex-end; /* Sayfanın en altına yerleştirir */
+}
+
+img {
+    height: 200px;
+    width: 200px;
+    margin-bottom: 20px;
+    background-color: transparent;
+    position: relative;
+    top: 300px;
+}
+
+#clock {
+    font-size: 36px;
+    text-align: center;
+    margin-bottom: 20px;
+    position: absolute; /* Kesin konumlandırma */
+    top: 20px; /* Yukarıdan 20 piksel boşluk */
+    right: 20px; /* Sağdan 20 piksel boşluk */
+    color:wheat;
+    font-family: Copperplate, Papyrus, fantasy;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+label, input {
+    margin: 5px 0
+}
+
+.mantar {
+    position: fixed; /* Sayfanın sabit bir konumunda kalır */
+    bottom: 20px; /* En alt */
+    right: 20px; /* Sağ köşe */
+    width: 60px; 
+    height: 75px; 
+    transform: scale(0.5); /* Boyutu yarıya indir */
+    transform-origin: bottom right; /* Küçültme işleminin merkezi */
+    top: 65%;
+    left: 75%;
+}
+
+.sap {
+    width: 10px;
+    height: 40px;
+    background-color: #f5f5dc;
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 5px 5px 0 0; /* Köşe yuvarlaklığı ayarlandı */
+}
+
+.kafa {
+    width: 60px;
+    height: 20px;
+    background-color: #ff0000;
+    position: absolute;
+    bottom: 40px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 25% 25% 0 0; /* Ters U şekli için alt kısım düzleştirildi */
+    box-shadow: 0 0 10px rgba(255, 99, 71, 0.5);
+    transition: box-shadow 0.3s ease, filter 0.3s ease; /* Geçiş efekti eklendi */
+    /* Küçük beyaz noktalar için radial gradient */
+    background-image: radial-gradient(circle, white 1px, transparent 1px),
+                    radial-gradient(circle, white 1px, transparent 1px);
+    background-size: 10px 10px; /* Noktaların aralığı ayarlandı */
+}
+
+.mantar:hover .kafa {
+    box-shadow: 0 0 20px rgba(255, 99, 71, 1); /* Gölgeyi artır */
+    filter: brightness(1.5); /* Parlaklık efekti ekle */
+}
+
+.mantar:hover::after {
+    content: 'Hello';
+    position: absolute;
+    top: -20px; 
+    left: 50%;
+    transform: translateX(-50%);
+    color: #FFFFFF;
+    font-family: Arial, sans-serif;
+    font-size: 24px; 
+    white-space: nowrap;
+}
+
+.mantar1 {
+    top: 70%;
+    left: 70%;
+}
+
+.mantar2 {
+    top: 60%;
+    left: 80%;
+}
+
+.mantar3 {
+    top: 75%;
+    left: 85%;
+}
+
+.mantar4 {
+    top: 65%;
+    left: 75%;
+}
+
+/* Kaskın ana yapısı */
+.helmet {
+    width: 150px;
+    height: 180px;
+    background-color: #777;
+    border: 5px solid #555;
+    border-radius: 40% 40% 70% 70%; /* Üst kısım daha basık */
+    position: fixed; /* Sayfanın belirli bir yerinde sabitler */
+    left: 0; /* Sol kenara hizalar */
+    bottom: 0; /* Alt kenara hizalar */
+    overflow: hidden;
+    transition: transform 0.5s ease; /* Açılma animasyonu */
+}
+
+/* Göz çevresi ters dönmüş U şeklinde */
+.helmet::before {
+    content: "";
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%) perspective(20px) rotateX(-20deg); /* Ters eğim */
+    width: 120px;
+    height: 30px;
+    background-color: #333;
+    border: 3px solid #555;
+    border-radius: 10px 10px 50% 50%; /* Üst kısım kavisli */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5); /* Gölge efekti */
+    transition: height 0.5s ease, transform 0.5s ease; /* Açılma animasyonu */
+}
+
+/* Burun, ağız ve çene kısmı (metal ızgara) */
+.helmet .face {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 60px;
+    background-color: #555;
+    border: 3px solid #444;
+    border-radius: 20px 20px 40px 40px;
+    overflow: hidden;
+}
+
+/* Metal ızgara efekti */
+.helmet .face::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(
+        to right,
+        transparent 90%,
+        #666 90%,
+        #666 100%
+    );
+    background-size: 15px 100%; /* Çizgilerin aralığı */
+}
+
+/* Çene kısmına ek detay */
+.helmet .face::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 20px;
+    background-color: #444;
+    border-radius: 10px;
+}
+
+/* Kaskın üst kısmına hafif bir gölge */
+.helmet::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3),
+        transparent
+    );
+    border-radius: 50% 50% 0 0;
+}
+
+/* Mouse ile üzerine gelindiğinde açılma efekti */
+.helmet:hover::before {
+    height: 60px; /* Göz kısmının yüksekliği artar */
+    transform: translateX(-50%) perspective(20px) rotateX(-10deg); /* Eğim azalır */
+}
+
+.helmet:hover + .container {
+    opacity: 1; /* Kask açıldığında container içeriği görünür hale gelir */
+}
+/*Bu kısımda Github copilot, windows copilot ve deepseek ai yı kullandım. Bir modelden promt la aldığım çıktıyı farklı 
+modellerde kullandım ve modifiye ettim. Aynı zamanda youtube, stackoverflow gibi sitelerden de yardım aldım. */
+/*Sayfadaki giriş yapılan kısmı sayfanın tam merkezine sabitle. Sayfanın boyu küçülse bile hep ortada kalmaya devam etsin.*/

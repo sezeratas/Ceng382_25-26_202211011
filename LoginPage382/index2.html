@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kullanıcı Bilgilerini Değiştir</title>
+    <link rel="stylesheet" href="styles2.css">
+    <style>
+        body {
+          background-image: url('backgroundGif.gif'); /* Arkaplan resmini belirtir */
+          background-size: cover; /* Arkaplan resmini tüm alanı kaplayacak şekilde ayarlar */
+          background-repeat: no-repeat; /* Arkaplan resmini tekrar etmez */
+          background-position: center; /* Arkaplan resmini ortalar */
+          display: flex;
+          flex-direction: column;
+          justify-content: center;
+          align-items: center;
+          height: 100vh;
+          margin: 0;
+        }
+      </style>
+</head>
+<body>
+    <div class="relogin-container">
+        <h2>Giriş Yap</h2>
+        <form>
+            <div class="input-container">
+                <label for="eposta">E-posta Adresiniz</label>
+                <input type="text" style="background-color:rgb(118, 74, 20)"
+                id="email" name="email" required
+                placeholder="E-mail adresinizi giriniz">
+            </div>
+            <div class="input-container">
+                <label for="username">Yeni Kullanıcı Adınızı Giriniz</label>
+                <input type="text" style="background-color:rgb(118, 74, 20)"
+                id="username" name="username" required
+                placeholder="Kullanıcı adınızı giriniz (opsiyonel)">
+            </div>
+            <div class="input-container">
+                <label for="password">Yeni Şifrenizi Giriniz</label>
+                <input type="password" style="background-color:rgb(118, 74, 20)"
+                id="password" name="password" required
+                placeholder="Şifrenizi giriniz">
+            </div>
+            <button type="submit">Değiştir</button>
+        </form>
+    </div>
+    <div class="mantar">
+        <div class="sap"></div>
+        <div class="kafa"></div>
+    </div>
+</body>
+</html>
+
+<!--index1 deki kodu yapıştırıp düzenledim.-->

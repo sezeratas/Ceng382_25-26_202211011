@@ -1,0 +1,125 @@
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #333;
+    margin: 0;
+    flex-direction: column;
+}
+
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;
+    color: #ffffff;
+    opacity: 0;
+    transition: opacity 0.5s ease; /* Geçiş efekti */
+}
+
+/* Kaskın ana yapısı */
+.helmet {
+    width: 150px;
+    height: 180px;
+    background-color: #777;
+    border: 5px solid #555;
+    border-radius: 40% 40% 70% 70%; /* Üst kısım daha basık */
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.5s ease; /* Açılma animasyonu */
+}
+
+/* Göz çevresi ters dönmüş U şeklinde */
+.helmet::before {
+    content: "";
+    position: absolute;
+    top: 50px;
+    left: 50%;
+    transform: translateX(-50%) perspective(20px) rotateX(-20deg); /* Ters eğim */
+    width: 120px;
+    height: 30px;
+    background-color: #333;
+    border: 3px solid #555;
+    border-radius: 10px 10px 50% 50%; /* Üst kısım kavisli */
+    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.5); /* Gölge efekti */
+    transition: height 0.5s ease, transform 0.5s ease; /* Açılma animasyonu */
+}
+
+/* Burun, ağız ve çene kısmı (metal ızgara) */
+.helmet .face {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 110px;
+    height: 60px;
+    background-color: #555;
+    border: 3px solid #444;
+    border-radius: 20px 20px 40px 40px;
+    overflow: hidden;
+}
+
+/* Metal ızgara efekti */
+.helmet .face::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: linear-gradient(
+        to right,
+        transparent 90%,
+        #666 90%,
+        #666 100%
+    );
+    background-size: 15px 100%; /* Çizgilerin aralığı */
+}
+
+/* Çene kısmına ek detay */
+.helmet .face::after {
+    content: "";
+    position: absolute;
+    bottom: -10px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 60px;
+    height: 20px;
+    background-color: #444;
+    border-radius: 10px;
+}
+
+/* Kaskın üst kısmına hafif bir gölge */
+.helmet::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: linear-gradient(
+        to bottom,
+        rgba(0, 0, 0, 0.3),
+        transparent
+    );
+    border-radius: 50% 50% 0 0;
+}
+
+/* Mouse ile üzerine gelindiğinde açılma efekti */
+.helmet:hover::before {
+    height: 60px; /* Göz kısmının yüksekliği artar */
+    transform: translateX(-50%) perspective(20px) rotateX(-10deg); /* Eğim azalır */
+}
+
+.helmet:hover + .container {
+    opacity: 1; /* Kask açıldığında container içeriği görünür hale gelir */
+}
+
+/* Ms copilot a bir şövelya kaskı yaptırdım. Üstüne gelince açılma efektini de Ms copilot ve deepseek de düzenledim.
+yaklaşık 20-25 prompt ile şu anki haline getirebildim. */
+/*Kask için yazdığım ilk prompt: Sitemde kullanmam için dark fantasy türünde bir şövalye kaskı yap.*/
+
+/*Kask için yazdığım ikinci prompt: Kaskın üzerine gelince açılma efekti yap*/
+
+/*Kask için yazdığım üçüncü prompt: Kaskı sayfada ortala.*/
