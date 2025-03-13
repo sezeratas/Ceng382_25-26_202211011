@@ -123,6 +123,34 @@ body {
     white-space: nowrap;
 }
 
+.table-container {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    background: white;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    display: none; /* Başlangıçta tablo gizli */
+}
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+th, td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+th {
+    background: #007bff;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f1f1f1;
+    transition: background-color 0.3s;
+}
 /*Mantarı deepseek e yaptırdım. Aşağıda yazdığım promt ilk verdiği çıktıydı ve sonrasında bu 
 çıktının üstüne yaklaşık 10 promt daha yazıp istediğim şekle getirdim*/
 
