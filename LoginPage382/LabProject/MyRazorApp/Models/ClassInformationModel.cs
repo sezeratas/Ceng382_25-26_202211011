@@ -4,8 +4,7 @@ namespace MyRazorApp.Models
 {
     public class ClassInformationModel
     {
-        private static int _counter = 1; // ID'yi otomatik arttırmak için
-
+        private static int _counter = 1; 
         public ClassInformationModel()
         {
             Id = _counter++;
@@ -23,3 +22,11 @@ namespace MyRazorApp.Models
         public string Description { get; set; }
     }
 }
+
+//GPT pompt: Razor page kullanarak yapmak istediğim bir proje var. 
+// Bana genel bir taslak oluşturur musun? Proje bir sınıf bilgileri uygulaması olacak. 
+// Kullanıcı sınıf adı, öğrenci sayısı ve açıklama gibi bilgileri girebilecek. 
+// Bu bilgileri listeleyebilecek, düzenleyebilecek ve silebilecek. 
+// Ayrıca, kullanıcıdan alınan bilgilerin doğruluğunu kontrol etmek için gerekli validasyonları yapmalısın. 
+// Razor Pages kullanarak bu projeyi oluşturmanı istiyorum. 
+// Razor Page ile birlikte gerekli model ve sayfa kodlarını da eklemelisin.
