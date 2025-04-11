@@ -3,75 +3,67 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
 using MyRazorApp.Models; 
-namespace MyRazorApp.Pages;
 
-public class IndexModel : PageModel
+namespace MyRazorApp.Pages
 {
-    public static List<ClassInformationModel> ClassList = new List<ClassInformationModel>();
-
-    private static int _idCounter = 1;
-
-    [BindProperty]
-    public ClassInformationModel NewClass { get; set; } = new ClassInformationModel();
-
-    [BindProperty]
-    public int EditId { get; set; }
-
-    public void OnGet()
+    public class IndexModel : PageModel
     {
-        
-    }
+        private static List<ClassInformationModel> ClassList = new();
+        private const int PageSize = 10;
 
-    public IActionResult OnPostAdd()
-    {
-        if (!ModelState.IsValid)
+        [BindProperty(SupportsGet = true)]
+        public string Filter { get; set; }
+
+        [BindProperty(SupportsGet = true)]
+        public int PageNumber { get; set; } = 1;
+
+        public List<ClassInformationTable> FilteredTable { get; set; } = new();
+
+        public int TotalPages { get; set; }
+
+        [BindProperty]
+        public ClassInformationModel NewClass { get; set; }
+
+        public IActionResult OnGet()
         {
+            // Create synthetic data once
+            if (!ClassList.Any())
+            {
+                for (int i = 1; i <= 100; i++)
+                {
+                    ClassList.Add(new ClassInformationModel
+                    {
+                        Id = i,
+                        ClassName = $"Class {i}",
+                        StudentCount = 20 + (i % 10),
+                        Description = $"Sample description {i}"
+                    });
+                }
+            }
+
+            var query = ClassList.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(Filter))
+            {
+                query = query.Where(c => c.ClassName.Contains(Filter));
+            }
+
+            TotalPages = (int)Math.Ceiling(query.Count() / (double)PageSize);
+            var pagedData = query
+                .Skip((PageNumber - 1) * PageSize)
+                .Take(PageSize)
+                .Select(c => new ClassInformationTable
+                {
+                    Id = c.Id,
+                    ClassName = c.ClassName,
+                    StudentCount = c.StudentCount,
+                    Description = c.Description
+                })
+                .ToList();
+
+            FilteredTable = pagedData;
             return Page();
         }
-
-        NewClass.Id = _idCounter++;
-        ClassList.Add(NewClass);
-
-        NewClass = new ClassInformationModel();
-
-        return RedirectToPage();
-    }
-
-    public IActionResult OnPostDelete(int id)
-    {
-        var item = ClassList.FirstOrDefault(c => c.Id == id);
-        if (item != null)
-        {
-            ClassList.Remove(item);
-        }
-        return RedirectToPage();
-    }
-
-    public IActionResult OnPostEdit(int id)
-    {
-        var item = ClassList.FirstOrDefault(c => c.Id == id);
-        if (item != null)
-        {
-            NewClass = new ClassInformationModel
-            {
-                Id = item.Id,
-                ClassName = item.ClassName,
-                StudentCount = item.StudentCount,
-                Description = item.Description
-            };
-        }
-        return Page();
-    }
-    public IActionResult OnPostUpdate()
-    {
-        var item = ClassList.FirstOrDefault(c => c.Id == NewClass.Id);
-        if (item != null)
-        {
-            item.ClassName = NewClass.ClassName;
-            item.StudentCount = NewClass.StudentCount;
-            item.Description = NewClass.Description;
-        }
-        return RedirectToPage();
     }
 }
 

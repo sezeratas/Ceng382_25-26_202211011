@@ -4,7 +4,7 @@
 
 <div class="container mt-4">
     <div class="row">
-        <!-- Left Hand Form -->
+        <!-- Sol Panel -->
         <div class="col-md-4">
             <h4>Add New Class</h4>
             <form method="post" asp-page-handler="Add">
@@ -30,13 +30,22 @@
             </form>
         </div>
 
-        <!-- Right Hand Table -->
+        <!-- Sağ Panel -->
         <div class="col-md-8">
             <h4>Class List</h4>
-            <table class="table table-striped">
+
+            <!-- Filter Form -->
+            <form method="get" class="mb-3">
+                <div class="input-group">
+                    <input type="text" name="Filter" value="@Model.Filter" class="form-control" placeholder="Filter by Class Name" />
+                    <button type="submit" class="btn btn-outline-primary">Filter</button>
+                </div>
+            </form>
+
+            <!-- Table -->
+            <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th>Id</th>
                         <th>Class Name</th>
                         <th>Student Count</th>
                         <th>Description</th>
@@ -44,16 +53,18 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in MyRazorApp.Pages.IndexModel.ClassList)
+                    @foreach (var item in Model.FilteredTable)
                     {
                         <tr>
-                            <td>@item.Id</td>
                             <td>@item.ClassName</td>
                             <td>@item.StudentCount</td>
                             <td>@item.Description</td>
                             <td>
-                                <!-- Delete Form -->
                                 <form method="post">
+                                    <input type="hidden" name="id" value="@item.Id" />
+                                    <button type="submit" asp-page-handler="Edit" class="btn btn-warning btn-sm">Edit</button>
+                                </form>
+                                <form method="post" class="d-inline">
                                     <input type="hidden" name="id" value="@item.Id" />
                                     <button type="submit" asp-page-handler="Delete" class="btn btn-danger btn-sm">Delete</button>
                                 </form>
@@ -62,6 +73,18 @@
                     }
                 </tbody>
             </table>
+
+            <!-- Pagination -->
+            <nav>
+                <ul class="pagination">
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(i == Model.PageNumber ? "active" : "")">
+                            <a class="page-link" href="?Filter=@Model.Filter&PageNumber=@i">@i</a>
+                        </li>
+                    }
+                </ul>
+            </nav>
         </div>
     </div>
 </div>
