@@ -8,7 +8,12 @@ namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
+        // Static liste: Tüm sayfalarda veri kaybı olmadan kullanılacak
         private static List<ClassInformationModel> ClassList = new();
+
+        // Verinin sadece bir kez oluşturulmasını sağlayacak flag
+        private static bool IsDataInitialized = false;
+
         private const int PageSize = 10;
 
         [BindProperty(SupportsGet = true)]
@@ -26,8 +31,8 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnGet()
         {
-            // Create synthetic data once
-            if (!ClassList.Any())
+            // Veriyi sadece 1 kez oluştur
+            if (!IsDataInitialized)
             {
                 for (int i = 1; i <= 100; i++)
                 {
@@ -39,8 +44,11 @@ namespace MyRazorApp.Pages
                         Description = $"Sample description {i}"
                     });
                 }
+
+                IsDataInitialized = true;
             }
 
+            // Filtreleme
             var query = ClassList.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(Filter))
@@ -48,7 +56,9 @@ namespace MyRazorApp.Pages
                 query = query.Where(c => c.ClassName.Contains(Filter));
             }
 
-            TotalPages = (int)Math.Ceiling(query.Count() / (double)PageSize);
+            // Sayfalama
+            TotalPages = (int)System.Math.Ceiling(query.Count() / (double)PageSize);
+
             var pagedData = query
                 .Skip((PageNumber - 1) * PageSize)
                 .Take(PageSize)
@@ -62,7 +72,46 @@ namespace MyRazorApp.Pages
                 .ToList();
 
             FilteredTable = pagedData;
+
             return Page();
+        }
+
+        // Yeni sınıf ekleme işlemi (isteğe bağlı)
+        public IActionResult OnPostAdd()
+        {
+            if (NewClass != null)
+            {
+                NewClass.Id = ClassList.Max(c => c.Id) + 1;
+                ClassList.Add(NewClass);
+            }
+
+            return RedirectToPage();
+        }
+
+        // Sınıf silme işlemi
+        public IActionResult OnPostDelete(int id)
+        {
+            var itemToDelete = ClassList.FirstOrDefault(c => c.Id == id);
+            if (itemToDelete != null)
+            {
+                ClassList.Remove(itemToDelete);
+            }
+
+            return RedirectToPage();
+        }
+
+        // Sınıf güncelleme işlemi (isteğe bağlı)
+        public IActionResult OnPostEdit(ClassInformationModel updatedClass)
+        {
+            var classItem = ClassList.FirstOrDefault(c => c.Id == updatedClass.Id);
+            if (classItem != null)
+            {
+                classItem.ClassName = updatedClass.ClassName;
+                classItem.StudentCount = updatedClass.StudentCount;
+                classItem.Description = updatedClass.Description;
+            }
+
+            return RedirectToPage();
         }
     }
 }
