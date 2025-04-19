@@ -4,7 +4,7 @@
 
 <div class="container mt-4">
     <div class="row">
-        <!-- Sol Panel -->
+        <!-- Left Panel -->
         <div class="col-md-4">
             <h4>Add New Class</h4>
             <form method="post" asp-page-handler="Add">
@@ -30,17 +30,32 @@
             </form>
         </div>
 
-        <!-- Sağ Panel -->
+        <!-- Right Panel -->
         <div class="col-md-8">
-            <h4>Class List</h4>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4>Class List</h4>
+                <div>
+                    <button id="exportBtn" class="btn btn-success">Export to JSON</button>
+                </div>
+            </div>
 
             <!-- Filter Form -->
             <form method="get" class="mb-3">
                 <div class="input-group">
-                    <input type="text" name="Filter" value="@Model.Filter" class="form-control" placeholder="Filter by Class Name" />
+                    <input type="text" asp-for="Filter" class="form-control" placeholder="Filter by Class Name" />
                     <button type="submit" class="btn btn-outline-primary">Filter</button>
                 </div>
             </form>
+
+            <!-- Column Selection -->
+            <div class="mb-3">
+                <div class="btn-group" id="columnSelector">
+                    <button type="button" class="btn btn-outline-secondary column-btn" data-column="ClassName">Class Name</button>
+                    <button type="button" class="btn btn-outline-secondary column-btn" data-column="StudentCount">Student Count</button>
+                    <button type="button" class="btn btn-outline-secondary column-btn" data-column="Description">Description</button>
+                </div>
+                <small class="form-text text-muted">Select columns to export (leave unselected for all columns)</small>
+            </div>
 
             <!-- Table -->
             <table class="table table-bordered table-striped">
@@ -91,12 +106,49 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-}
+        <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const exportBtn = document.getElementById('exportBtn');
+            const columnButtons = document.querySelectorAll('.column-btn');
+            let selectedColumns = [];
 
-<!--GPT pompt: Razor page kullanarak yapmak istediğim bir proje var.
- Bana genel bir taslak oluşturur musun? Proje bir sınıf bilgileri uygulaması olacak. 
-// Kullanıcı sınıf adı, öğrenci sayısı ve açıklama gibi bilgileri girebilecek. 
-// Bu bilgileri listeleyebilecek, düzenleyebilecek ve silebilecek. 
-// Ayrıca, kullanıcıdan alınan bilgilerin doğruluğunu kontrol etmek için gerekli validasyonları yapmalısın. 
-// Razor Pages kullanarak bu projeyi oluşturmanı istiyorum. 
-// Razor Page ile birlikte gerekli model ve sayfa kodlarını da eklemelisin. !-->
+            columnButtons.forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const column = this.dataset.column;
+                    if (this.classList.contains('btn-primary')) {
+                        this.classList.remove('btn-primary');
+                        this.classList.add('btn-outline-secondary');
+                        selectedColumns = selectedColumns.filter(c => c !== column);
+                    } else {
+                        this.classList.remove('btn-outline-secondary');
+                        this.classList.add('btn-primary');
+                        selectedColumns.push(column);
+                    }
+                });
+            });
+
+            exportBtn.addEventListener('click', async function() {
+                const currentFilter = '@Model.Filter'; // Razor ile modelden al
+                const exportType = confirm('Export filtered data only? (OK for filtered, Cancel for all data)') 
+                    ? 'filtered' 
+                    : 'all';
+
+                const response = await fetch(`?handler=Export&filter=${exportType}&selectedColumns=${selectedColumns.join(',')}&currentFilter=${currentFilter}`);
+                const data = await response.json();
+
+                if (data.success) {
+                    const blob = new Blob([data.jsonData], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `classes_${exportType}_${new Date().toISOString().slice(0,10)}.json`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                } else {
+                    alert('Error exporting data');
+                }
+            });
+        });
+    </script>
+}

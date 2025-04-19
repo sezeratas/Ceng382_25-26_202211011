@@ -2,18 +2,17 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
-using MyRazorApp.Models; 
+using MyRazorApp.Models;
+using MyRazorApp.Helpers;
+using System.Text.Json;
 
 namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
-        // Static liste: Tüm sayfalarda veri kaybı olmadan kullanılacak
-        private static List<ClassInformationModel> ClassList = new();
-
-        // Verinin sadece bir kez oluşturulmasını sağlayacak flag
-        private static bool IsDataInitialized = false;
-
+        // Static list: Will be shared across all instances
+        private static List<ClassInformationModel> _classList = new();
+        private static bool _isDataInitialized = false;
         private const int PageSize = 10;
 
         [BindProperty(SupportsGet = true)]
@@ -23,7 +22,6 @@ namespace MyRazorApp.Pages
         public int PageNumber { get; set; } = 1;
 
         public List<ClassInformationTable> FilteredTable { get; set; } = new();
-
         public int TotalPages { get; set; }
 
         [BindProperty]
@@ -31,12 +29,11 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnGet()
         {
-            // Veriyi sadece 1 kez oluştur
-            if (!IsDataInitialized)
+            if (!_isDataInitialized)
             {
                 for (int i = 1; i <= 100; i++)
                 {
-                    ClassList.Add(new ClassInformationModel
+                    _classList.Add(new ClassInformationModel
                     {
                         Id = i,
                         ClassName = $"Class {i}",
@@ -44,22 +41,19 @@ namespace MyRazorApp.Pages
                         Description = $"Sample description {i}"
                     });
                 }
-
-                IsDataInitialized = true;
+                _isDataInitialized = true;
             }
 
-            // Filtreleme
-            var query = ClassList.AsQueryable();
+            var query = _classList.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(Filter))
             {
                 query = query.Where(c => c.ClassName.Contains(Filter));
             }
 
-            // Sayfalama
             TotalPages = (int)System.Math.Ceiling(query.Count() / (double)PageSize);
 
-            var pagedData = query
+            FilteredTable = query
                 .Skip((PageNumber - 1) * PageSize)
                 .Take(PageSize)
                 .Select(c => new ClassInformationTable
@@ -71,55 +65,90 @@ namespace MyRazorApp.Pages
                 })
                 .ToList();
 
-            FilteredTable = pagedData;
-
             return Page();
         }
 
-        // Yeni sınıf ekleme işlemi (isteğe bağlı)
         public IActionResult OnPostAdd()
         {
             if (NewClass != null)
             {
-                NewClass.Id = ClassList.Max(c => c.Id) + 1;
-                ClassList.Add(NewClass);
+                NewClass.Id = _classList.Max(c => c.Id) + 1;
+                _classList.Add(NewClass);
             }
-
             return RedirectToPage();
         }
 
-        // Sınıf silme işlemi
         public IActionResult OnPostDelete(int id)
         {
-            var itemToDelete = ClassList.FirstOrDefault(c => c.Id == id);
+            var itemToDelete = _classList.FirstOrDefault(c => c.Id == id);
             if (itemToDelete != null)
             {
-                ClassList.Remove(itemToDelete);
+                _classList.Remove(itemToDelete);
             }
-
             return RedirectToPage();
         }
 
-        // Sınıf güncelleme işlemi (isteğe bağlı)
         public IActionResult OnPostEdit(ClassInformationModel updatedClass)
         {
-            var classItem = ClassList.FirstOrDefault(c => c.Id == updatedClass.Id);
+            var classItem = _classList.FirstOrDefault(c => c.Id == updatedClass.Id);
             if (classItem != null)
             {
                 classItem.ClassName = updatedClass.ClassName;
                 classItem.StudentCount = updatedClass.StudentCount;
                 classItem.Description = updatedClass.Description;
             }
-
             return RedirectToPage();
+        }
+
+        public IActionResult OnGetExport(string filter, string selectedColumns, string currentFilter)
+        {
+            try
+            {
+                IEnumerable<ClassInformationTable> dataToExport;
+                var columns = string.IsNullOrEmpty(selectedColumns) 
+                    ? null 
+                    : selectedColumns.Split(',').ToList();
+
+                if (filter == "filtered")
+                {
+                    var query = _classList.AsQueryable();
+
+                    if (!string.IsNullOrWhiteSpace(currentFilter))
+                    {
+                        query = query.Where(c => c.ClassName.Contains(currentFilter));
+                    }
+
+                    dataToExport = query.Select(c => new ClassInformationTable
+                    {
+                        Id = c.Id,
+                        ClassName = c.ClassName,
+                        StudentCount = c.StudentCount,
+                        Description = c.Description
+                    }).ToList();
+                }
+                else
+                {
+                    dataToExport = _classList.Select(c => new ClassInformationTable
+                    {
+                        Id = c.Id,
+                        ClassName = c.ClassName,
+                        StudentCount = c.StudentCount,
+                        Description = c.Description
+                    });
+                }
+
+                var jsonData = Utils.Instance.ExportToJson(dataToExport, columns);
+
+                return new JsonResult(new 
+                { 
+                    success = true, 
+                    jsonData = jsonData 
+                });
+            }
+            catch
+            {
+                return new JsonResult(new { success = false });
+            }
         }
     }
 }
-
-//GPT pompt: Razor page kullanarak yapmak istediğim bir proje var. 
-// Bana genel bir taslak oluşturur musun? Proje bir sınıf bilgileri uygulaması olacak. 
-// Kullanıcı sınıf adı, öğrenci sayısı ve açıklama gibi bilgileri girebilecek. 
-// Bu bilgileri listeleyebilecek, düzenleyebilecek ve silebilecek. 
-// Ayrıca, kullanıcıdan alınan bilgilerin doğruluğunu kontrol etmek için gerekli validasyonları yapmalısın. 
-// Razor Pages kullanarak bu projeyi oluşturmanı istiyorum. 
-// Razor Page ile birlikte gerekli model ve sayfa kodlarını da eklemelisin.
