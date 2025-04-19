@@ -10,7 +10,7 @@ namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
-        // Static list: Will be shared across all instances
+        // Static liste: Tüm sayfalarda veri kaybı olmadan kullanılacak
         private static List<ClassInformationModel> _classList = new();
         private static bool _isDataInitialized = false;
         private const int PageSize = 10;
@@ -21,6 +21,9 @@ namespace MyRazorApp.Pages
         [BindProperty(SupportsGet = true)]
         public int PageNumber { get; set; } = 1;
 
+        [BindProperty(SupportsGet = true)]
+        public List<string> SelectedColumns { get; set; } = new List<string>();
+
         public List<ClassInformationTable> FilteredTable { get; set; } = new();
         public int TotalPages { get; set; }
 
@@ -29,6 +32,7 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnGet()
         {
+            // Veriyi sadece 1 kez oluştur
             if (!_isDataInitialized)
             {
                 for (int i = 1; i <= 100; i++)
@@ -41,9 +45,11 @@ namespace MyRazorApp.Pages
                         Description = $"Sample description {i}"
                     });
                 }
+
                 _isDataInitialized = true;
             }
 
+            // Filtreleme
             var query = _classList.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(Filter))
@@ -51,6 +57,7 @@ namespace MyRazorApp.Pages
                 query = query.Where(c => c.ClassName.Contains(Filter));
             }
 
+            // Sayfalama
             TotalPages = (int)System.Math.Ceiling(query.Count() / (double)PageSize);
 
             FilteredTable = query
@@ -75,6 +82,7 @@ namespace MyRazorApp.Pages
                 NewClass.Id = _classList.Max(c => c.Id) + 1;
                 _classList.Add(NewClass);
             }
+
             return RedirectToPage();
         }
 
@@ -85,6 +93,7 @@ namespace MyRazorApp.Pages
             {
                 _classList.Remove(itemToDelete);
             }
+
             return RedirectToPage();
         }
 
@@ -97,6 +106,7 @@ namespace MyRazorApp.Pages
                 classItem.StudentCount = updatedClass.StudentCount;
                 classItem.Description = updatedClass.Description;
             }
+
             return RedirectToPage();
         }
 
@@ -137,7 +147,29 @@ namespace MyRazorApp.Pages
                     });
                 }
 
-                var jsonData = Utils.Instance.ExportToJson(dataToExport, columns);
+                // Seçili sütunlara göre filtrele
+                if (columns != null && columns.Any())
+                {
+                    dataToExport = dataToExport.Select(item => 
+                    {
+                        var filteredItem = new ClassInformationTable();
+                        
+                        if (columns.Contains("ClassName"))
+                            filteredItem.ClassName = item.ClassName;
+                        
+                        if (columns.Contains("StudentCount"))
+                            filteredItem.StudentCount = item.StudentCount;
+                        
+                        if (columns.Contains("Description"))
+                            filteredItem.Description = item.Description;
+                        
+                        filteredItem.Id = item.Id;
+                        
+                        return filteredItem;
+                    }).ToList();
+                }
+
+                var jsonData = Utils.Instance.ExportToJson(dataToExport);
 
                 return new JsonResult(new 
                 { 
