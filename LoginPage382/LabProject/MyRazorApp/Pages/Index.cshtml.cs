@@ -110,7 +110,7 @@ namespace MyRazorApp.Pages
             return RedirectToPage();
         }
 
-        public IActionResult OnGetExport(string filter, string selectedColumns, string currentFilter)
+        public IActionResult OnGetExport(string filter, string selectedColumns, string currentFilter, int currentPage)
         {
             try
             {
@@ -119,25 +119,25 @@ namespace MyRazorApp.Pages
                     ? new List<string>() 
                     : selectedColumns.Split(',').ToList();
 
+                var query = _classList.AsQueryable();
+
+                // Filtre uygula
+                if (!string.IsNullOrWhiteSpace(currentFilter))
+                {
+                    query = query.Where(c => c.ClassName.Contains(currentFilter));
+                }
+
+                // Sayfalama uygula (sadece filtered seçeneği için)
                 if (filter == "filtered")
                 {
-                    var query = _classList.AsQueryable();
-
-                    if (!string.IsNullOrWhiteSpace(currentFilter))
-                    {
-                        query = query.Where(c => c.ClassName.Contains(currentFilter));
-                    }
-
-                    dataToExport = query.Select(c => 
-                        CreateExportItem(c, columns)
-                    ).ToList();
+                    query = query
+                        .Skip((currentPage - 1) * PageSize)
+                        .Take(PageSize);
                 }
-                else
-                {
-                    dataToExport = _classList.Select(c => 
-                        CreateExportItem(c, columns)
-                    );
-                }
+
+                dataToExport = query.Select(c => 
+                    CreateExportItem(c, columns)
+                ).ToList();
 
                 var jsonData = JsonSerializer.Serialize(dataToExport, new JsonSerializerOptions
                 {

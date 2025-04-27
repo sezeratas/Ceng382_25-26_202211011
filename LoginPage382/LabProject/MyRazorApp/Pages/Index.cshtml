@@ -139,12 +139,13 @@
             const columnHeaders = document.querySelectorAll('th.clickable');
             let selectedColumns = @Html.Raw(Json.Serialize(Model.SelectedColumns ?? new List<string>()));
 
-            // Başlıklara tıklanabilirlik ekle
+            // Sütun başlıklarına tıklama özelliği ekleme
             columnHeaders.forEach(header => {
                 header.addEventListener('click', function() {
                     const columnName = this.dataset.column;
                     const isSelected = this.classList.contains('selected');
 
+                    // Seçim durumunu güncelle
                     if (isSelected) {
                         selectedColumns = selectedColumns.filter(c => c !== columnName);
                         this.classList.remove('selected');
@@ -153,58 +154,68 @@
                         this.classList.add('selected');
                     }
 
-                    // Sütun vurgulamasını güncelle
+                    // İlgili sütunu vurgula
                     highlightColumn(columnName, !isSelected);
                 });
             });
 
-            // Export butonu için click handler
+            // JSON Export işlemi
             exportBtn.addEventListener('click', async function() {
                 const currentFilter = '@Model.Filter';
-                const exportType = confirm('Export filtered data only? (OK for filtered, Cancel for all data)') 
+                const currentPage = @Model.PageNumber; // Mevcut sayfa numarası
+                
+                // Kullanıcıdan onay alma
+                const exportType = confirm('Export filtered data only? (OK for current page, Cancel for all data)') 
                     ? 'filtered' 
                     : 'all';
 
-                const response = await fetch(`?handler=Export&filter=${exportType}&selectedColumns=${selectedColumns.join(',')}&currentFilter=${encodeURIComponent(currentFilter)}`);
-                const data = await response.json();
+                try {
+                    // Sunucuya istek gönder
+                    const response = await fetch(
+                        `?handler=Export&filter=${exportType}` + 
+                        `&selectedColumns=${selectedColumns.join(',')}` +
+                        `&currentFilter=${encodeURIComponent(currentFilter)}` +
+                        `&currentPage=${currentPage}`
+                    );
+                    
+                    const data = await response.json();
 
-                if (data.success) {
-                    const blob = new Blob([data.jsonData], { type: 'application/json' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = `classes_${exportType}_${new Date().toISOString().slice(0,10)}.json`;
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                } else {
-                    alert('Error exporting data');
+                    if (data.success) {
+                        // Dosya indirme işlemi
+                        const blob = new Blob([data.jsonData], { type: 'application/json' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = `classes_${exportType}_${new Date().toISOString().slice(0,10)}.json`;
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                    } else {
+                        alert('Error exporting data: ' + (data.message || 'Unknown error'));
+                    }
+                } catch (error) {
+                    console.error('Export failed:', error);
+                    alert('Export işlemi sırasında bir hata oluştu');
                 }
             });
 
             // Sütun vurgulama fonksiyonu
             function highlightColumn(columnName, shouldHighlight) {
-                const columnIndex = getColumnIndex(columnName) + 1;
-                const cells = document.querySelectorAll(`th:nth-child(${columnIndex}), td:nth-child(${columnIndex})`);
+                const columnIndex = getColumnIndex(columnName) + 1; // CSS 1-based index
+                const cells = document.querySelectorAll(
+                    `th:nth-child(${columnIndex}), ` +
+                    `td:nth-child(${columnIndex})`
+                );
                 
                 cells.forEach(cell => {
-                    if (shouldHighlight) {
-                        cell.classList.add('column-highlight');
-                    } else {
-                        cell.classList.remove('column-highlight');
-                    }
+                    cell.classList.toggle('column-highlight', shouldHighlight);
                 });
             }
 
-            // Sütun indeksini bulma
+            // Sütun indeks bulma fonksiyonu
             function getColumnIndex(columnName) {
-                const headers = document.querySelectorAll('th[data-column]');
-                for (let i = 0; i < headers.length; i++) {
-                    if (headers[i].dataset.column === columnName) {
-                        return i;
-                    }
-                }
-                return -1;
+                return Array.from(document.querySelectorAll('th[data-column]'))
+                    .findIndex(header => header.dataset.column === columnName);
             }
         });
     </script>
