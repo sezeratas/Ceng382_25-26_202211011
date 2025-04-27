@@ -9,15 +9,30 @@
         transition: background-color 0.3s ease;
     }
     
-    /* Seçili buton stilleri */
-    .column-btn.selected {
-        background-color: #007bff !important;
-        color: white !important;
+    /* Tıklanabilir başlık stilleri */
+    th.clickable {
+        cursor: pointer;
+        user-select: none;
+        position: relative;
     }
     
-    /* Buton hover efekti */
-    .column-btn:hover:not(.selected) {
+    th.clickable:hover {
         background-color: #e9ecef !important;
+    }
+
+    /* Seçili başlık göstergesi */
+    th.clickable::after {
+        content: "✓";
+        position: absolute;
+        right: 8px;
+        top: 50%;
+        transform: translateY(-50%);
+        opacity: 0;
+        color: #007bff;
+    }
+
+    th.clickable.selected::after {
+        opacity: 1;
     }
 </style>
 
@@ -66,26 +81,16 @@
                 </div>
             </form>
 
-            <!-- Column Selection -->
-            <div class="mb-3">
-                <div class="btn-group" id="columnSelector">
-                    <button type="button" class="btn btn-outline-secondary column-btn @(Model.SelectedColumns.Contains("ClassName") ? "selected" : "")" 
-                            data-column="ClassName">Class Name</button>
-                    <button type="button" class="btn btn-outline-secondary column-btn @(Model.SelectedColumns.Contains("StudentCount") ? "selected" : "")" 
-                            data-column="StudentCount">Student Count</button>
-                    <button type="button" class="btn btn-outline-secondary column-btn @(Model.SelectedColumns.Contains("Description") ? "selected" : "")" 
-                            data-column="Description">Description</button>
-                </div>
-                <small class="form-text text-muted">Select columns to export (leave unselected for all columns)</small>
-            </div>
-
             <!-- Table -->
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th class="@GetColumnClass("ClassName")">Class Name</th>
-                        <th class="@GetColumnClass("StudentCount")">Student Count</th>
-                        <th class="@GetColumnClass("Description")">Description</th>
+                        <th class="clickable @(Model.SelectedColumns.Contains("ClassName") ? "selected" : "")" 
+                            data-column="ClassName">Class Name</th>
+                        <th class="clickable @(Model.SelectedColumns.Contains("StudentCount") ? "selected" : "")" 
+                            data-column="StudentCount">Student Count</th>
+                        <th class="clickable @(Model.SelectedColumns.Contains("Description") ? "selected" : "")" 
+                            data-column="Description">Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -93,9 +98,9 @@
                     @foreach (var item in Model.FilteredTable)
                     {
                         <tr>
-                            <td class="@GetColumnClass("ClassName")">@item.ClassName</td>
-                            <td class="@GetColumnClass("StudentCount")">@item.StudentCount</td>
-                            <td class="@GetColumnClass("Description")">@item.Description</td>
+                            <td class="@(Model.SelectedColumns.Contains("ClassName") ? "column-highlight" : "")">@item.ClassName</td>
+                            <td class="@(Model.SelectedColumns.Contains("StudentCount") ? "column-highlight" : "")">@item.StudentCount</td>
+                            <td class="@(Model.SelectedColumns.Contains("Description") ? "column-highlight" : "")">@item.Description</td>
                             <td>
                                 <form method="post">
                                     <input type="hidden" name="id" value="@item.Id" />
@@ -126,45 +131,31 @@
     </div>
 </div>
 
-@functions {
-    string GetColumnClass(string columnName)
-    {
-        return Model.SelectedColumns.Contains(columnName) ? "column-highlight" : "";
-    }
-}
-
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const exportBtn = document.getElementById('exportBtn');
-            const columnButtons = document.querySelectorAll('.column-btn');
+            const columnHeaders = document.querySelectorAll('th.clickable');
             let selectedColumns = @Html.Raw(Json.Serialize(Model.SelectedColumns ?? new List<string>()));
 
-            // Sütun seçim butonları için click handler
-            columnButtons.forEach(btn => {
-                btn.addEventListener('click', function() {
-                    this.classList.toggle('selected');
+            // Başlıklara tıklanabilirlik ekle
+            columnHeaders.forEach(header => {
+                header.addEventListener('click', function() {
                     const columnName = this.dataset.column;
-                    
-                    if (this.classList.contains('selected')) {
-                        if (!selectedColumns.includes(columnName)) {
-                            selectedColumns.push(columnName);
-                        }
-                    } else {
-                        selectedColumns = selectedColumns.filter(c => c !== columnName);
-                    }
-                    
-                    highlightColumn(columnName, this.classList.contains('selected'));
-                });
-            });
+                    const isSelected = this.classList.contains('selected');
 
-            // Sayfa yüklendiğinde seçili sütunları vurgula
-            columnButtons.forEach(btn => {
-                if (btn.classList.contains('selected')) {
-                    const columnName = btn.dataset.column;
-                    highlightColumn(columnName, true);
-                }
+                    if (isSelected) {
+                        selectedColumns = selectedColumns.filter(c => c !== columnName);
+                        this.classList.remove('selected');
+                    } else {
+                        selectedColumns.push(columnName);
+                        this.classList.add('selected');
+                    }
+
+                    // Sütun vurgulamasını güncelle
+                    highlightColumn(columnName, !isSelected);
+                });
             });
 
             // Export butonu için click handler
@@ -174,7 +165,7 @@
                     ? 'filtered' 
                     : 'all';
 
-                const response = await fetch(`?handler=Export&filter=${exportType}&selectedColumns=${selectedColumns.join(',')}&currentFilter=${currentFilter}`);
+                const response = await fetch(`?handler=Export&filter=${exportType}&selectedColumns=${selectedColumns.join(',')}&currentFilter=${encodeURIComponent(currentFilter)}`);
                 const data = await response.json();
 
                 if (data.success) {
@@ -193,7 +184,7 @@
 
             // Sütun vurgulama fonksiyonu
             function highlightColumn(columnName, shouldHighlight) {
-                const columnIndex = getColumnIndex(columnName) + 1; // +1 çünkü CSS 1-based index kullanır
+                const columnIndex = getColumnIndex(columnName) + 1;
                 const cells = document.querySelectorAll(`th:nth-child(${columnIndex}), td:nth-child(${columnIndex})`);
                 
                 cells.forEach(cell => {
@@ -207,8 +198,13 @@
 
             // Sütun indeksini bulma
             function getColumnIndex(columnName) {
-                const columns = ['ClassName', 'StudentCount', 'Description'];
-                return columns.indexOf(columnName);
+                const headers = document.querySelectorAll('th[data-column]');
+                for (let i = 0; i < headers.length; i++) {
+                    if (headers[i].dataset.column === columnName) {
+                        return i;
+                    }
+                }
+                return -1;
             }
         });
     </script>

@@ -114,9 +114,9 @@ namespace MyRazorApp.Pages
         {
             try
             {
-                IEnumerable<ClassInformationTable> dataToExport;
+                IEnumerable<Dictionary<string, object>> dataToExport;
                 var columns = string.IsNullOrEmpty(selectedColumns) 
-                    ? null 
+                    ? new List<string>() 
                     : selectedColumns.Split(',').ToList();
 
                 if (filter == "filtered")
@@ -128,48 +128,22 @@ namespace MyRazorApp.Pages
                         query = query.Where(c => c.ClassName.Contains(currentFilter));
                     }
 
-                    dataToExport = query.Select(c => new ClassInformationTable
-                    {
-                        Id = c.Id,
-                        ClassName = c.ClassName,
-                        StudentCount = c.StudentCount,
-                        Description = c.Description
-                    }).ToList();
+                    dataToExport = query.Select(c => 
+                        CreateExportItem(c, columns)
+                    ).ToList();
                 }
                 else
                 {
-                    dataToExport = _classList.Select(c => new ClassInformationTable
-                    {
-                        Id = c.Id,
-                        ClassName = c.ClassName,
-                        StudentCount = c.StudentCount,
-                        Description = c.Description
-                    });
+                    dataToExport = _classList.Select(c => 
+                        CreateExportItem(c, columns)
+                    );
                 }
 
-                // Seçili sütunlara göre filtrele
-                if (columns != null && columns.Any())
+                var jsonData = JsonSerializer.Serialize(dataToExport, new JsonSerializerOptions
                 {
-                    dataToExport = dataToExport.Select(item => 
-                    {
-                        var filteredItem = new ClassInformationTable();
-                        
-                        if (columns.Contains("ClassName"))
-                            filteredItem.ClassName = item.ClassName;
-                        
-                        if (columns.Contains("StudentCount"))
-                            filteredItem.StudentCount = item.StudentCount;
-                        
-                        if (columns.Contains("Description"))
-                            filteredItem.Description = item.Description;
-                        
-                        filteredItem.Id = item.Id;
-                        
-                        return filteredItem;
-                    }).ToList();
-                }
-
-                var jsonData = Utils.Instance.ExportToJson(dataToExport);
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                });
 
                 return new JsonResult(new 
                 { 
@@ -181,6 +155,32 @@ namespace MyRazorApp.Pages
             {
                 return new JsonResult(new { success = false });
             }
+        }
+
+        private Dictionary<string, object> CreateExportItem(ClassInformationModel item, List<string> selectedColumns)
+        {
+            var exportItem = new Dictionary<string, object>();
+
+            // Her zaman ID'yi ekleyelim
+            exportItem["id"] = item.Id;
+
+            // Seçili sütunları ekleyelim
+            if (selectedColumns.Contains("ClassName"))
+            {
+                exportItem["className"] = item.ClassName;
+            }
+
+            if (selectedColumns.Contains("StudentCount"))
+            {
+                exportItem["studentCount"] = item.StudentCount;
+            }
+
+            if (selectedColumns.Contains("Description"))
+            {
+                exportItem["description"] = item.Description;
+            }
+
+            return exportItem;
         }
     }
 }
