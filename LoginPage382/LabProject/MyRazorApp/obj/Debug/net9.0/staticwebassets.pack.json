@@ -9,6 +9,10 @@
       "PackagePath": "staticwebassets\\css\\site.css"
     },
     {
+      "Id": "C:\\Users\\sezer\\Desktop\\New folder\\Ceng382_25-26_202211011\\LoginPage382\\LabProject\\MyRazorApp\\wwwroot\\data\\users.json",
+      "PackagePath": "staticwebassets\\data\\users.json"
+    },
+    {
       "Id": "C:\\Users\\sezer\\Desktop\\New folder\\Ceng382_25-26_202211011\\LoginPage382\\LabProject\\MyRazorApp\\wwwroot\\favicon.ico",
       "PackagePath": "staticwebassets\\favicon.ico"
     },

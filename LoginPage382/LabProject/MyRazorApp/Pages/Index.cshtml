@@ -135,17 +135,18 @@
     <partial name="_ValidationScriptsPartial" />
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            // Elementleri tanımla
             const exportBtn = document.getElementById('exportBtn');
             const columnHeaders = document.querySelectorAll('th.clickable');
             let selectedColumns = @Html.Raw(Json.Serialize(Model.SelectedColumns ?? new List<string>()));
 
-            // Sütun başlıklarına tıklama özelliği ekleme
+            // Sütun başlıklarına tıklama özelliği ekle
             columnHeaders.forEach(header => {
                 header.addEventListener('click', function() {
                     const columnName = this.dataset.column;
                     const isSelected = this.classList.contains('selected');
 
-                    // Seçim durumunu güncelle
+                    // Seçimi tersine çevir
                     if (isSelected) {
                         selectedColumns = selectedColumns.filter(c => c !== columnName);
                         this.classList.remove('selected');
@@ -154,34 +155,39 @@
                         this.classList.add('selected');
                     }
 
-                    // İlgili sütunu vurgula
+                    // Sütun vurgulamayı güncelle
                     highlightColumn(columnName, !isSelected);
                 });
             });
 
-            // JSON Export işlemi
+            // Export butonu işleyicisi
             exportBtn.addEventListener('click', async function() {
                 const currentFilter = '@Model.Filter';
-                const currentPage = @Model.PageNumber; // Mevcut sayfa numarası
-                
-                // Kullanıcıdan onay alma
-                const exportType = confirm('Export filtered data only? (OK for current page, Cancel for all data)') 
-                    ? 'filtered' 
-                    : 'all';
+                const pageNumber = @Model.PageNumber;
+                const pageSize = 10; // Sabit değer (veya Model.PageSize kullanılabilir)
 
+                // Kullanıcıya export seçeneğini sor
+                const exportType = confirm('Tüm filtrelenmiş veriyi mi export etmek istiyorsunuz? (OK = TÜMÜ, Cancel = SADECE BU SAYFA)')
+                    ? 'filtered'
+                    : 'currentPage';
+
+                // API isteği gönder
                 try {
-                    // Sunucuya istek gönder
                     const response = await fetch(
-                        `?handler=Export&filter=${exportType}` + 
+                        `?handler=Export` +
+                        `&filter=${exportType}` +
                         `&selectedColumns=${selectedColumns.join(',')}` +
                         `&currentFilter=${encodeURIComponent(currentFilter)}` +
-                        `&currentPage=${currentPage}`
+                        `&pageNumber=${pageNumber}` +
+                        `&pageSize=${pageSize}`
                     );
+
+                    if (!response.ok) throw new Error('Export failed');
                     
                     const data = await response.json();
 
+                    // JSON'u indir
                     if (data.success) {
-                        // Dosya indirme işlemi
                         const blob = new Blob([data.jsonData], { type: 'application/json' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
@@ -190,12 +196,12 @@
                         document.body.appendChild(a);
                         a.click();
                         document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
                     } else {
-                        alert('Error exporting data: ' + (data.message || 'Unknown error'));
+                        alert('Export başarısız oldu. Lütfen tekrar deneyin.');
                     }
                 } catch (error) {
-                    console.error('Export failed:', error);
-                    alert('Export işlemi sırasında bir hata oluştu');
+                    alert('Bir hata oluştu: ' + error.message);
                 }
             });
 
@@ -203,19 +209,16 @@
             function highlightColumn(columnName, shouldHighlight) {
                 const columnIndex = getColumnIndex(columnName) + 1; // CSS 1-based index
                 const cells = document.querySelectorAll(
-                    `th:nth-child(${columnIndex}), ` +
-                    `td:nth-child(${columnIndex})`
+                    `th:nth-child(${columnIndex}), td:nth-child(${columnIndex})`
                 );
-                
-                cells.forEach(cell => {
-                    cell.classList.toggle('column-highlight', shouldHighlight);
-                });
+                cells.forEach(cell => cell.classList.toggle('column-highlight', shouldHighlight));
             }
 
-            // Sütun indeks bulma fonksiyonu
+            // Sütun indeksini bulma
             function getColumnIndex(columnName) {
-                return Array.from(document.querySelectorAll('th[data-column]'))
-                    .findIndex(header => header.dataset.column === columnName);
+                return Array.from(columnHeaders).findIndex(
+                    header => header.dataset.column === columnName
+                );
             }
         });
     </script>

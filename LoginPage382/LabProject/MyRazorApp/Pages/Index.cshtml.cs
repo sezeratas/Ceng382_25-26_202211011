@@ -3,17 +3,16 @@ using Microsoft.AspNetCore.Mvc.RazorPages;
 using System.Collections.Generic;
 using System.Linq;
 using MyRazorApp.Models;
-using MyRazorApp.Helpers;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 
 namespace MyRazorApp.Pages
 {
     public class IndexModel : PageModel
     {
-        // Static liste: Tüm sayfalarda veri kaybı olmadan kullanılacak
         private static List<ClassInformationModel> _classList = new();
         private static bool _isDataInitialized = false;
-        private const int PageSize = 10;
+        public static int PageSize { get; } = 10;
 
         [BindProperty(SupportsGet = true)]
         public string Filter { get; set; }
@@ -32,7 +31,11 @@ namespace MyRazorApp.Pages
 
         public IActionResult OnGet()
         {
-            // Veriyi sadece 1 kez oluştur
+            if (!IsUserAuthenticated())
+            {
+                return RedirectToPage("Login");
+            }
+
             if (!_isDataInitialized)
             {
                 for (int i = 1; i <= 100; i++)
@@ -45,11 +48,9 @@ namespace MyRazorApp.Pages
                         Description = $"Sample description {i}"
                     });
                 }
-
                 _isDataInitialized = true;
             }
 
-            // Filtreleme
             var query = _classList.AsQueryable();
 
             if (!string.IsNullOrWhiteSpace(Filter))
@@ -57,7 +58,6 @@ namespace MyRazorApp.Pages
                 query = query.Where(c => c.ClassName.Contains(Filter));
             }
 
-            // Sayfalama
             TotalPages = (int)System.Math.Ceiling(query.Count() / (double)PageSize);
 
             FilteredTable = query
@@ -75,6 +75,24 @@ namespace MyRazorApp.Pages
             return Page();
         }
 
+        private bool IsUserAuthenticated()
+        {
+            var usernameFromSession = HttpContext.Session.GetString("username");
+            var tokenFromSession = HttpContext.Session.GetString("token");
+            var sessionIdFromSession = HttpContext.Session.GetString("session_id");
+
+            var usernameFromCookie = Request.Cookies["username"];
+            var tokenFromCookie = Request.Cookies["token"];
+            var sessionIdFromCookie = Request.Cookies["session_id"];
+
+            return !string.IsNullOrEmpty(usernameFromSession) &&
+                   !string.IsNullOrEmpty(tokenFromSession) &&
+                   !string.IsNullOrEmpty(sessionIdFromSession) &&
+                   usernameFromSession == usernameFromCookie &&
+                   tokenFromSession == tokenFromCookie &&
+                   sessionIdFromSession == sessionIdFromCookie;
+        }
+
         public IActionResult OnPostAdd()
         {
             if (NewClass != null)
@@ -82,7 +100,6 @@ namespace MyRazorApp.Pages
                 NewClass.Id = _classList.Max(c => c.Id) + 1;
                 _classList.Add(NewClass);
             }
-
             return RedirectToPage();
         }
 
@@ -93,7 +110,6 @@ namespace MyRazorApp.Pages
             {
                 _classList.Remove(itemToDelete);
             }
-
             return RedirectToPage();
         }
 
@@ -106,81 +122,56 @@ namespace MyRazorApp.Pages
                 classItem.StudentCount = updatedClass.StudentCount;
                 classItem.Description = updatedClass.Description;
             }
-
             return RedirectToPage();
         }
 
-        public IActionResult OnGetExport(string filter, string selectedColumns, string currentFilter, int currentPage)
+        public IActionResult OnGetExport(string filter, string selectedColumns, string currentFilter, int pageNumber = 1, int pageSize = 10)
         {
             try
             {
-                IEnumerable<Dictionary<string, object>> dataToExport;
-                var columns = string.IsNullOrEmpty(selectedColumns) 
-                    ? new List<string>() 
+                var columns = string.IsNullOrEmpty(selectedColumns)
+                    ? new List<string>()
                     : selectedColumns.Split(',').ToList();
+
+                var allColumns = new List<string> { "ClassName", "StudentCount", "Description" };
+                var finalColumns = columns.Count == 0 ? allColumns : columns;
 
                 var query = _classList.AsQueryable();
 
-                // Filtre uygula
                 if (!string.IsNullOrWhiteSpace(currentFilter))
                 {
                     query = query.Where(c => c.ClassName.Contains(currentFilter));
                 }
 
-                // Sayfalama uygula (sadece filtered seçeneği için)
-                if (filter == "filtered")
+                if (filter == "currentPage")
                 {
                     query = query
-                        .Skip((currentPage - 1) * PageSize)
-                        .Take(PageSize);
+                        .Skip((pageNumber - 1) * pageSize)
+                        .Take(pageSize);
                 }
 
-                dataToExport = query.Select(c => 
-                    CreateExportItem(c, columns)
-                ).ToList();
+                var dataToExport = query
+                    .Select(c => new
+                    {
+                        ClassName = finalColumns.Contains("ClassName") ? c.ClassName : null,
+                        StudentCount = finalColumns.Contains("StudentCount") ? c.StudentCount : (int?)null,
+                        Description = finalColumns.Contains("Description") ? c.Description : null
+                    })
+                    .ToList();
 
                 var jsonData = JsonSerializer.Serialize(dataToExport, new JsonSerializerOptions
                 {
                     WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+                    DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull
                 });
 
-                return new JsonResult(new 
-                { 
-                    success = true, 
-                    jsonData = jsonData 
-                });
+                return new JsonResult(new { success = true, jsonData });
             }
             catch
             {
                 return new JsonResult(new { success = false });
             }
-        }
-
-        private Dictionary<string, object> CreateExportItem(ClassInformationModel item, List<string> selectedColumns)
-        {
-            var exportItem = new Dictionary<string, object>();
-
-            // Her zaman ID'yi ekleyelim
-            exportItem["id"] = item.Id;
-
-            // Seçili sütunları ekleyelim
-            if (selectedColumns.Contains("ClassName"))
-            {
-                exportItem["className"] = item.ClassName;
-            }
-
-            if (selectedColumns.Contains("StudentCount"))
-            {
-                exportItem["studentCount"] = item.StudentCount;
-            }
-
-            if (selectedColumns.Contains("Description"))
-            {
-                exportItem["description"] = item.Description;
-            }
-
-            return exportItem;
         }
     }
 }

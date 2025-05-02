@@ -96,3 +96,4 @@ C:\Users\sezer\Desktop\New folder\Ceng382_25-26_202211011\LoginPage382\LabProjec
 C:\Users\sezer\Desktop\New folder\Ceng382_25-26_202211011\LoginPage382\LabProject\MyRazorApp\obj\Debug\net9.0\MyRazorApp.pdb
 C:\Users\sezer\Desktop\New folder\Ceng382_25-26_202211011\LoginPage382\LabProject\MyRazorApp\obj\Debug\net9.0\MyRazorApp.genruntimeconfig.cache
 C:\Users\sezer\Desktop\New folder\Ceng382_25-26_202211011\LoginPage382\LabProject\MyRazorApp\obj\Debug\net9.0\ref\MyRazorApp.dll
+C:\Users\sezer\Desktop\New folder\Ceng382_25-26_202211011\LoginPage382\LabProject\MyRazorApp\obj\Debug\net9.0\compressed\khtmvtm95k-ft53igbtjt.gz
