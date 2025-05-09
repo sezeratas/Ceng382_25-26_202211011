@@ -1,8 +1,11 @@
-// Program.cs
+using Microsoft.EntityFrameworkCore;
+using MyRazorApp.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// Razor Pages ve oturum servislerini ekle
 builder.Services.AddRazorPages();
+
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -10,9 +13,13 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
+// SQL Server bağlantısı (appsettings.json içindeki connection string kullanılmalı)
+builder.Services.AddDbContext<SchoolDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("SchoolDbConnection")));
+
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// HTTP istekleri için middleware yapılandırması
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
@@ -24,9 +31,10 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseSession(); // Add this before Authorization
-app.UseAuthorization();
+app.UseSession();       // Oturum yönetimi
+app.UseAuthorization(); // Yetkilendirme (gerekirse)
 
+// Razor Pages için endpoint yönlendirme
 app.MapRazorPages();
 
-app.Run();
+app.Run(); // Uygulamayı başlat

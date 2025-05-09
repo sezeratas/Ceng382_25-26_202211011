@@ -2,40 +2,6 @@
 @model MyRazorApp.Pages.IndexModel
 @addTagHelper *, Microsoft.AspNetCore.Mvc.TagHelpers
 
-<style>
-    /* Sütun vurgulama stilleri */
-    .column-highlight {
-        background-color: rgba(0, 123, 255, 0.1) !important;
-        transition: background-color 0.3s ease;
-    }
-    
-    /* Tıklanabilir başlık stilleri */
-    th.clickable {
-        cursor: pointer;
-        user-select: none;
-        position: relative;
-    }
-    
-    th.clickable:hover {
-        background-color: #e9ecef !important;
-    }
-
-    /* Seçili başlık göstergesi */
-    th.clickable::after {
-        content: "✓";
-        position: absolute;
-        right: 8px;
-        top: 50%;
-        transform: translateY(-50%);
-        opacity: 0;
-        color: #007bff;
-    }
-
-    th.clickable.selected::after {
-        opacity: 1;
-    }
-</style>
-
 <div class="container mt-4">
     <div class="row">
         <!-- Sol Panel -->
@@ -43,21 +9,20 @@
             <h4>Add New Class</h4>
             <form method="post" asp-page-handler="Add">
                 <div class="form-group">
-                    <label asp-for="NewClass.ClassName"></label>
-                    <input asp-for="NewClass.ClassName" class="form-control" />
-                    <span asp-validation-for="NewClass.ClassName" class="text-danger"></span>
+                    <label asp-for="NewClass.Name"></label>
+                    <input asp-for="NewClass.Name" class="form-control" />
+                    <span asp-validation-for="NewClass.Name" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
-                    <label asp-for="NewClass.StudentCount"></label>
-                    <input asp-for="NewClass.StudentCount" class="form-control" />
-                    <span asp-validation-for="NewClass.StudentCount" class="text-danger"></span>
+                    <label asp-for="NewClass.PersonCount"></label>
+                    <input asp-for="NewClass.PersonCount" class="form-control" />
+                    <span asp-validation-for="NewClass.PersonCount" class="text-danger"></span>
                 </div>
 
                 <div class="form-group">
                     <label asp-for="NewClass.Description"></label>
                     <textarea asp-for="NewClass.Description" class="form-control"></textarea>
-                    <span asp-validation-for="NewClass.Description" class="text-danger"></span>
                 </div>
 
                 <button type="submit" class="btn btn-primary mt-2">Add Class</button>
@@ -68,12 +33,9 @@
         <div class="col-md-8">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h4>Class List</h4>
-                <div>
-                    <button id="exportBtn" class="btn btn-success">Export to JSON</button>
-                </div>
             </div>
 
-            <!-- Filter Form -->
+            <!-- Filtre Formu -->
             <form method="get" class="mb-3">
                 <div class="input-group">
                     <input type="text" asp-for="Filter" class="form-control" placeholder="Filter by Class Name" />
@@ -81,42 +43,44 @@
                 </div>
             </form>
 
-            <!-- Table -->
+            <!-- Tablo -->
             <table class="table table-bordered table-striped">
                 <thead>
                     <tr>
-                        <th class="clickable @(Model.SelectedColumns.Contains("ClassName") ? "selected" : "")" 
-                            data-column="ClassName">Class Name</th>
-                        <th class="clickable @(Model.SelectedColumns.Contains("StudentCount") ? "selected" : "")" 
-                            data-column="StudentCount">Student Count</th>
-                        <th class="clickable @(Model.SelectedColumns.Contains("Description") ? "selected" : "")" 
-                            data-column="Description">Description</th>
+                        <th>Name</th>
+                        <th>Person Count</th>
+                        <th>Description</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
-                <tbody>
-                    @foreach (var item in Model.FilteredTable)
-                    {
-                        <tr>
-                            <td class="@(Model.SelectedColumns.Contains("ClassName") ? "column-highlight" : "")">@item.ClassName</td>
-                            <td class="@(Model.SelectedColumns.Contains("StudentCount") ? "column-highlight" : "")">@item.StudentCount</td>
-                            <td class="@(Model.SelectedColumns.Contains("Description") ? "column-highlight" : "")">@item.Description</td>
-                            <td>
-                                <form method="post">
-                                    <input type="hidden" name="id" value="@item.Id" />
-                                    <button type="submit" asp-page-handler="Edit" class="btn btn-warning btn-sm">Edit</button>
-                                </form>
-                                <form method="post" class="d-inline">
-                                    <input type="hidden" name="id" value="@item.Id" />
-                                    <button type="submit" asp-page-handler="Delete" class="btn btn-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
+<tbody>
+    @if (Model.ClassList != null)
+    {
+        @foreach (var item in Model.ClassList)
+        {
+            <tr>
+                <td>@item.Name</td>
+                <td>@item.PersonCount</td>
+                <td>@item.Description</td>
+                <td>
+                    <form method="post" class="d-inline">
+                        <input type="hidden" name="id" value="@item.Id" />
+                        <button type="submit" asp-page-handler="Delete" class="btn btn-danger btn-sm">Delete</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    }
+    else
+    {
+        <tr>
+            <td colspan="4">No data available.</td>
+        </tr>
+    }
+</tbody>
             </table>
 
-            <!-- Pagination -->
+            <!-- Sayfalama -->
             <nav>
                 <ul class="pagination">
                     @for (int i = 1; i <= Model.TotalPages; i++)
@@ -133,93 +97,4 @@
 
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Elementleri tanımla
-            const exportBtn = document.getElementById('exportBtn');
-            const columnHeaders = document.querySelectorAll('th.clickable');
-            let selectedColumns = @Html.Raw(Json.Serialize(Model.SelectedColumns ?? new List<string>()));
-
-            // Sütun başlıklarına tıklama özelliği ekle
-            columnHeaders.forEach(header => {
-                header.addEventListener('click', function() {
-                    const columnName = this.dataset.column;
-                    const isSelected = this.classList.contains('selected');
-
-                    // Seçimi tersine çevir
-                    if (isSelected) {
-                        selectedColumns = selectedColumns.filter(c => c !== columnName);
-                        this.classList.remove('selected');
-                    } else {
-                        selectedColumns.push(columnName);
-                        this.classList.add('selected');
-                    }
-
-                    // Sütun vurgulamayı güncelle
-                    highlightColumn(columnName, !isSelected);
-                });
-            });
-
-            // Export butonu işleyicisi
-            exportBtn.addEventListener('click', async function() {
-                const currentFilter = '@Model.Filter';
-                const pageNumber = @Model.PageNumber;
-                const pageSize = 10; // Sabit değer (veya Model.PageSize kullanılabilir)
-
-                // Kullanıcıya export seçeneğini sor
-                const exportType = confirm('Tüm filtrelenmiş veriyi mi export etmek istiyorsunuz? (OK = TÜMÜ, Cancel = SADECE BU SAYFA)')
-                    ? 'filtered'
-                    : 'currentPage';
-
-                // API isteği gönder
-                try {
-                    const response = await fetch(
-                        `?handler=Export` +
-                        `&filter=${exportType}` +
-                        `&selectedColumns=${selectedColumns.join(',')}` +
-                        `&currentFilter=${encodeURIComponent(currentFilter)}` +
-                        `&pageNumber=${pageNumber}` +
-                        `&pageSize=${pageSize}`
-                    );
-
-                    if (!response.ok) throw new Error('Export failed');
-                    
-                    const data = await response.json();
-
-                    // JSON'u indir
-                    if (data.success) {
-                        const blob = new Blob([data.jsonData], { type: 'application/json' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `classes_${exportType}_${new Date().toISOString().slice(0,10)}.json`;
-                        document.body.appendChild(a);
-                        a.click();
-                        document.body.removeChild(a);
-                        URL.revokeObjectURL(url);
-                    } else {
-                        alert('Export başarısız oldu. Lütfen tekrar deneyin.');
-                    }
-                } catch (error) {
-                    alert('Bir hata oluştu: ' + error.message);
-                }
-            });
-
-            // Sütun vurgulama fonksiyonu
-            function highlightColumn(columnName, shouldHighlight) {
-                const columnIndex = getColumnIndex(columnName) + 1; // CSS 1-based index
-                const cells = document.querySelectorAll(
-                    `th:nth-child(${columnIndex}), td:nth-child(${columnIndex})`
-                );
-                cells.forEach(cell => cell.classList.toggle('column-highlight', shouldHighlight));
-            }
-
-            // Sütun indeksini bulma
-            function getColumnIndex(columnName) {
-                return Array.from(columnHeaders).findIndex(
-                    header => header.dataset.column === columnName
-                );
-            }
-        });
-    </script>
 }

@@ -9,7 +9,7 @@ namespace MyRazorApp.Models
         {
             Id = _counter++;
         }
-
+        [Key]
         public int Id { get; set; }
 
         [Required(ErrorMessage = "Class name is required")]
